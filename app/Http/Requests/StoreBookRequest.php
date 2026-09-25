@@ -48,7 +48,8 @@ class StoreBookRequest extends FormRequest
             'stok.required' => 'Stok wajib diisi.',
             'stok.integer' => 'Stok harus berupa angka.',
             'stok.min' => 'Stok tidak boleh kurang dari 0.',
-            'category_id.required' => 'Kategori wajib dipilih.',
+            'category_id' => 'required|integer|exists:categories,id', 
+            'category_id.exists' => 'Kategori yang dipilih tidak valid.',
         ];
     }
 }
