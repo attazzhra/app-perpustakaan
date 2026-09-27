@@ -2,20 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Member;
+use App\Http\Requests\StoreMemberRequest;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
-    private array $members = [
-        ['id' => 1, 'nama' => 'Siti Aminah', 'nim' => '2310501001', 'email' => 'siti.aminah@pens.ac.id', 'nomor_telepon' => '081234567890', 'status' => 'aktif'],
-        ['id' => 2, 'nama' => 'Budi Santoso', 'nim' => '2310501002', 'email' => 'budi.santoso@pens.ac.id', 'nomor_telepon' => '081298765432', 'status' => 'aktif'],
-        ['id' => 3, 'nama' => 'Dewi Lestari', 'nim' => '2310501003', 'email' => 'dewi.lestari@pens.ac.id', 'nomor_telepon' => '081211122233', 'status' => 'nonaktif'],
-    ];
-
     public function index()
     {
-        $members = $this->members;
+        $members = Member::when(request('search'), function ($query, $search) {
+            $query->where('nama', 'like', "%{$search}%");
+        })->paginate(10);
 
         return view('members.index', compact('members'));
+    }
+
+    public function create()
+    {
+        return view('members.create');
+    }
+
+    public function store(StoreMemberRequest $request)
+    {
+        Member::create($request->validated());
+
+        return redirect()->route('members.index')->with('success', 'Member berhasil ditambahkan.');
+    }
+
+    public function show($id)
+    {
+        $member = Member::findOrFail($id);
+
+        return view('members.show', compact('member'));
+    }
+
+    public function edit($id)
+    {
+        $member = Member::findOrFail($id);
+
+        return view('members.edit', compact('member'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $member = Member::findOrFail($id);
+
+        $validated = $request->validate([
+            'nama'          => 'required',
+            'nim'           => 'required|unique:members,nim,' . $member->id,
+            'email'         => 'required|email|unique:members,email,' . $member->id,
+            'nomor_telepon' => 'required',
+            'alamat'        => 'required',
+            'status'        => 'required|in:aktif,nonaktif',
+        ]);
+
+        $member->update($validated);
+
+        return redirect()->route('members.index')->with('success', 'Member berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $member = Member::findOrFail($id);
+        $member->delete();
+
+        return redirect()->route('members.index')->with('success', 'Member berhasil dihapus.');
     }
 }

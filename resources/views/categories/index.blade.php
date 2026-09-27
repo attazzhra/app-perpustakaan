@@ -42,3 +42,5 @@
     </table>
 
     {{ $categories->links() }}
+
+    @endsection 
